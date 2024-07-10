@@ -1,0 +1,121 @@
+parameters:
+  browser: ""
+  env: ""
+  tag_name: $(TEST_TAG)
+  testrun_type: ""
+
+jobs:
+  - job: Tests
+    timeoutInMinutes: 300
+    variables:
+      - name: browser
+        value: ${{ parameters.browser }}
+      - name: env
+        value: ${{ parameters.env }}
+      - name: tag_name
+        value: ${{ parameters.tag_name }}
+      - name: testrun_type
+        value: ${{ parameters.testrun_type }}
+    continueOnError: true
+    condition: succeededOrFailed()
+    steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: "3.10"
+          addToPath: true
+
+      - script: |
+          python -m venv venv/test
+          source ./venv/test/bin/activate
+          pip install --upgrade -r requirements.txt
+          sed -i 's/<testuser_password_1>/$(TEST_USER_PASS_1)/g' config_example.yaml
+          sed -i 's/<testuser_password_2>/$(TEST_USER_PASS_2)/g' config_example.yaml
+          sed -i 's/<testuser_password_3>/$(TEST_USER_PASS_3)/g' config_example.yaml
+          sed -i 's/<testuser_password_4>/$(TEST_USER_PASS_4)/g' config_example.yaml
+          sed -i 's/<testuser_password_5>/$(TEST_USER_PASS_5)/g' config_example.yaml
+          cp config_example.yaml config.yaml
+
+          export lt_build_id="$(tag_name)_$(env)_$(Build.BuildId)"
+          echo "##vso[task.setvariable variable=lt_build_id;isOutput=true]$lt_build_id"
+        displayName: "Requirements set up"
+        name: reqs
+
+      - script: |
+          export tunnel_name=agent_`cat /dev/urandom | tr -dc '0-9' | fold -w 16 | head -n 1`
+          echo "Tunnel Name: $tunnel_name"
+
+          wget https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT \
+          && chmod 777 ./LT \
+          && (./LT --user $(LT_USER) --key $(LT_ACCESS_KEY) --tunnelName $tunnel_name --verbose & ) \
+          && echo "##vso[task.setvariable variable=tunnel_pid;isOutput=true]$(echo $!)" \
+          && ( sleep 1m; echo Tunnel was established properly; )
+
+          echo "##vso[task.setvariable variable=tunnel_name;isOutput=true]$tunnel_name"
+        displayName: "Setup tunnel"
+        name: tunnel
+        condition: eq('$(testrun_type)', 'remote')
+
+      - script: |
+          rm -rf /_work/logs/allure_report
+          source ./venv/test/bin/activate
+
+          if [ "$(testrun_type)" = "remote" ]; then
+            REMOTE_ARGS="--remote_options.lt_username=$(LT_USER) \
+            --remote_options.lt_access_key=$(LT_ACCESS_KEY) \
+            --remote_options.lt_tunnel=$(tunnel.tunnel_name) \
+            --remote_options.lt_build_id=$(reqs.lt_build_id)"
+          else
+            REMOTE_ARGS=""
+          fi
+
+          pytest_cmd="pytest \
+          -n $(PROC_NUM) \
+          -k $(tag_name) \
+          --env=$(env) \
+          --browser=$(browser) \
+          --testrun_type=$(testrun_type) \
+          $REMOTE_ARGS \
+          --alluredir=/_work/logs/allure_report \
+          --azure_build_name=$(Build.DefinitionName) \
+          --azure_build_id=$(Build.BuildId) \
+          --google_reports.private_key_id=$(goog_private_key_id) \
+          --google_reports.private_key=$(goog_private_key) \
+          --google_reports.client_email=$(goog_client_email) \
+          --google_reports.client_id=$(goog_client_id) \
+          --google_reports.client_x509_cert_url=$(goog_client_x509_cert_url) \
+          --suppress-tests-failed-exit-code"
+
+          echo $pytest_cmd
+          eval $pytest_cmd
+        displayName: Tests
+        condition: succeeded()
+
+      - script: |
+          export report_dir=/_work/reports/$(Build.Repository.Name)/$(env)/$(tag_name)
+          if ! [ -d "$report_dir" ]; then \
+            echo "Creating report dir: $report_dir"; \
+            mkdir -p "$report_dir"; \
+          fi
+
+          export CURRENT_BUILD=$(Build.BuildId)
+          export LAST_BUILD=$(ls -Art $report_dir | grep -v $CURRENT_BUILD | tail -1)
+          echo "Last build: $LAST_BUILD"
+
+          if [ -d "$report_dir/$LAST_BUILD" ]; then \
+            echo "Last build dir is $report_dir/$LAST_BUILD"; \
+            if [ -d "$report_dir/$LAST_BUILD/$(browser)" ]; then \
+              echo "History is exists. Copying..."; \
+              mkdir -p /_work/logs/allure_report/history; \
+              cp -r $report_dir/$LAST_BUILD/$(browser)/history/* /_work/logs/allure_report/history/; \
+              echo "History copied successfully"; \
+            fi \
+          fi
+
+          allure generate -c /_work/logs/allure_report -o $report_dir/$(reqs.lt_build_id)/$(browser)
+        displayName: Build Report
+        condition: always()
+
+      - script: |
+          kill -9 $(pgrep -f LT)
+        displayName: Kill Tunnel
+        condition: eq('$(testrun_type)', 'remote')

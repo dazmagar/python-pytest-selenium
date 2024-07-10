@@ -1,0 +1,30 @@
+-r requirements.txt
+
+# linters
+flake8==5.0.4
+flake8-json==21.7.0
+
+flake8-adjustable-complexity==0.0.6
+flake8-annotations==2.9.1
+flake8-annotations-coverage==0.0.6
+flake8-bugbear==22.9.11
+flake8-builtins==1.5.3
+flake8-cognitive-complexity==0.1.0
+flake8-commas==2.1.0
+flake8-comprehensions==3.10.0
+flake8-eradicate==1.4.0
+flake8-expression-complexity==0.0.11
+flake8-functions==0.0.7
+git+https://github.com/i02sopop/flake8-global-variables
+git+https://github.com/c0ntribut0r/flake8-grug
+flake8-per-file-ignores==0.7
+flake8-pie==0.16.0
+flake8-print==5.0.0
+flake8-scream==0.1.0
+flake8-simplify==0.19.3
+flake8-use-pathlib==0.3.0
+
+pep8-naming==0.13.2
+
+pylint==2.15.3
+flake8-pylint==0.1.3

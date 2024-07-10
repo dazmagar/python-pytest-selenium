@@ -1,0 +1,33 @@
+base_url: "https://${env}.saucedemo.com/"
+env: "www"
+
+browser: "chrome"
+is_headless: True
+testrun_type: "local" # "local" or "remote" only
+page_load_strategy: "normal" # posible values: "normal", "eager", "none"
+browser_resolution:
+  width: 1920
+  height: 1080
+remote_options:
+  project_name: "test"
+  platform: "Windows 11"
+  browser_version: "latest"
+  browser_resolution:
+    width: 1920
+    height: 1080
+  lt_username: "<username>"
+  lt_access_key: "<access_key>"
+  lt_tunnel: "<tunnel>"
+  lt_build_id: "<build_id>"
+  selenium_version: "4.13.0"
+
+test_users_credentials:
+  testuser_01@test.com: "<testuser_password_1>"
+  testuser_02@test.com: "<testuser_password_2>"
+  testuser_03@test.com: "<testuser_password_3>"
+
+reporting:
+  save_logs_to_file: yes
+  add_ids_to_titles: yes # if a case marked with @allure.id(...) this id will be added to title as prefix: "[<id>] <title>"
+  add_executor_details: yes
+  screen_each_step: yes

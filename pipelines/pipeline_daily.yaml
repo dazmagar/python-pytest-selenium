@@ -1,0 +1,38 @@
+# for using this pipeline you need to create two pipeline variables and two groups in library
+# groups:
+# 1) at_credentials should contains test users passwords from TEST_USER_PASS_1 to TEST_USER_PASS_5
+# 2) at_global should contain LT_USER and LT_ACCESS_KEY
+# variables:
+# 1) PROC_NUM (processes number for each group!!!)
+# 2) TEST_TAG (tags of tests to run)
+
+variables:
+  - group: at_credentials
+  - group: at_global
+
+pool:
+  name: usis-autotests
+  workspace:
+    clean: all
+
+trigger: none
+
+stages:
+  - stage: cleanup
+    dependsOn:
+    jobs:
+      - template: steps_tests.yaml
+        parameters:
+          testrun_type: $(test_run_type)
+          browser: $(test_browser)
+          env: $(test_env)
+          tag_name: cleanup
+
+  - stage: tests
+    dependsOn: cleanup
+    jobs:
+      - template: steps_tests.yaml
+        parameters:
+          testrun_type: $(test_run_type)
+          browser: $(test_browser)
+          env: $(test_env)

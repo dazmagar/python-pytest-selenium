@@ -1,9 +1,11 @@
-import six
-import inspect
 import collections
+import inspect
+import typing as t
+
+import six
 
 
-def represent(item):
+def represent(item: t.Any) -> str:
     if isinstance(item, six.text_type):
         return "'%s'" % item
     elif isinstance(item, (bytes, bytearray)):
@@ -12,7 +14,7 @@ def represent(item):
         return repr(item)
 
 
-def func_parameters(func, *args, **kwargs):
+def func_parameters(func: t.Callable[..., t.Any], *args: t.Any, **kwargs: t.Any) -> collections.OrderedDict:
     """
     >>> def helper(func):
     ...     def wrapper(*args, **kwargs):
@@ -146,7 +148,7 @@ def func_parameters(func, *args, **kwargs):
     [('a', '1'), ('b', '2')]
 
     """
-    parameters = {}
+    parameters: t.Dict[str, t.Any] = {}
     arg_spec = inspect.getfullargspec(func)
 
     arg_order = list(arg_spec.args)

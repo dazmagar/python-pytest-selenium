@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from omegaconf import OmegaConf, DictConfig
+
 from _pytest.config import Config as PytestConfig
+from omegaconf import DictConfig, OmegaConf
 
 import definitions
 

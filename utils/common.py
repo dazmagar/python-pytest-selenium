@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 import time
@@ -5,6 +6,8 @@ from datetime import datetime
 from typing import Tuple
 
 import definitions
+
+logger = logging.getLogger(__name__)
 
 
 def random_string(stringLength: int) -> str:
@@ -31,7 +34,7 @@ def remove_empty_logs(max_retries: int = 3, retry_delay: int = 1) -> None:
                         time.sleep(retry_delay)
                 else:
                     # Max retries reached, unable to delete the file.
-                    print(f"Failed to delete {file_full_path}")
+                    logger.error("Failed to delete: %s", file_full_path)
 
 
 # contextmanager to manage timeouted actions

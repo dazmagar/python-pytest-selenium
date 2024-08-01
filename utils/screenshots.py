@@ -1,9 +1,9 @@
 import logging
 from datetime import datetime
-from pathlib import Path
+
+from selenium.webdriver.remote.webdriver import WebDriver
 
 import definitions
-from selenium.webdriver.remote.webdriver import WebDriver
 
 logger = logging.getLogger(__name__)
 

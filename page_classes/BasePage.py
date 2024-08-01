@@ -1,5 +1,3 @@
-import typing as t
-
 from selenium.common.exceptions import *
 from selenium.webdriver.remote.webdriver import WebDriver
 

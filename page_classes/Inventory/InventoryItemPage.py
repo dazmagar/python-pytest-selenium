@@ -4,10 +4,9 @@ from pathlib import Path
 from selenium.common.exceptions import *
 from selenium.webdriver.remote.webdriver import WebDriver
 
-import definitions
 from core.allure_helper import allure_step
 from page_classes.BasePage import BasePage
-from resources.pages_locators import base_page, inventory_item_page
+from resources.pages_locators import inventory_item_page
 
 
 class InventoryItemPage(BasePage):

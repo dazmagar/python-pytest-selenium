@@ -1,9 +1,7 @@
 ## Virtual Environment Setup
 
 1. Run `python -m venv venv`.
-3. Activate the virtual environment : 
-windows: `.\venv\Scripts\activate`
-linux: `source ./venv/bin/activate`
+3. Activate the virtual environment: `.\venv\Scripts\activate` or `source ./venv/bin/activate`
 > To deactivate simply run `deactivate`
 4. Replace `config.example.yaml` with your modified `config.yaml`
 
